@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeiterfassung</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;background:#f3f5f8;color:#111}
+header{background:#061a2e;color:#fff;text-align:center;padding:18px;font-size:26px;font-weight:800}
+main{padding:14px;max-width:560px;margin:auto;padding-bottom:90px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+h1,h2,h3{margin:0 0 10px}
+.small{color:#667085;font-size:14px}
+input,textarea,select{width:100%;padding:12px;margin:6px 0;border:1px solid #d0d5dd;border-radius:10px;font-size:16px;background:#fff}
+textarea{min-height:70px}
+button{width:100%;padding:14px;margin:8px 0;border:0;border-radius:12px;background:#007aff;color:white;font-size:17px;font-weight:800}
+button.gray{background:#e9eef5;color:#111}
+button.red{background:#fee4e2;color:#b42318}
+.hidden{display:none!important}
+.dayHead{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eee;padding:14px 0;gap:8px}
+.dayHead:first-child{border-top:0}
+.badge{background:#e9f8ef;color:#15803d;border-radius:99px;padding:6px 10px;font-weight:700;font-size:13px}
+.time{font-weight:900;white-space:nowrap}
+.dayBody{border-bottom:1px solid #eee;padding-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.site{background:#fafafa;border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin:10px 0}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:12px;text-align:center}
+.kpi b{font-size:22px}
+.ok{color:#15803d;font-weight:700}
+.err{color:#b42318;font-weight:700}
+nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:8px 0 12px}
+nav button{background:white;color:#555;font-size:12px;border-radius:0;width:auto;padding:6px;margin:0}
+nav button.active{color:#007aff}
+.pdf{border:1px solid #111;border-radius:0}
+table{width:100%;border-collapse:collapse;font-size:12px}
+td,th{border:1px solid #333;padding:5px;text-align:left}
+</style>
+</head>
+
+<body>
+<header>🏗️ Zeiterfassung</header>
+
+<main>
+<section id="loginBox" class="card">
+<h1>Anmeldung</h1>
+<p class="small">Demo-Zugänge</p>
+<p><b>Mitarbeiter:</b> Volker / 09101994<br><b>Chef:</b> Chef / 1234<br><b>Büro:</b> Buero / 1234</p>
+<input id="user" value="Volker" placeholder="Benutzername">
+<input id="pass" value="09101994" type="password" placeholder="Passwort">
+<button onclick="login()">Anmelden</button>
+<p id="loginMsg" class="err hidden">Benutzername oder Passwort falsch.</p>
+</section>
+
+<section id="app" class="hidden">
+
+<div id="weekPage">
+<div class="card">
+<h2>Wochenbericht</h2>
+<p class="small">KW 23 / 2026 · 02.06.2026 – 06.06.2026</p>
+<p>Mitarbeiter<br><b id="nameOut">Volker</b></p>
+<button onclick="standard()">Standardzeiten übernehmen</button>
+</div>
+
+<div class="card" id="daysBox"></div>
+
+<div class="card">
+<h3>Zusammenfassung</h3>
+<div class="kpis">
+<div class="kpi"><span class="small">Arbeitszeit</span><br><b id="weekTotal">0:00 h</b></div>
+<div class="kpi"><span class="small">H-Tage</span><br><b id="hTotal">0</b></div>
+</div>
+<p id="checkText" class="ok">Alle Eingaben sind plausibel.</p>
+</div>
+
+<button onclick="sendReport()">✈ Wochenbericht absenden</button>
+</div>
+
+<div id="reportsPage" class="hidden">
+<div class="card">
+<h2>Meine Berichte</h2>
+<p><b>KW 23 / 2026</b><br><span class="small">Entwurf · aktuelle Woche</span></p>
+<p><b>KW 22 / 2026</b><br><span class="small">Übermittelt · 39:00 h</span></p>
+<p><b>KW 21 / 2026</b><br><span class="small">Übermittelt · 40:00 h</span></p>
+</div>
+</div>
+
+<div id="pdfPage" class="hidden">
+<div class="card pdf">
+<h2>Stundenzettel</h2>
+<p><b>Muster Dach GmbH</b><br>Mitarbeiter: <span id="pdfName">Volker</span><br>KW 23 / 2026</p>
+<table>
+<thead><tr><th>Tag</th><th>Baustelle</th><th>Tätigkeit</th><th>Status</th><th>Std.</th></tr></thead>
+<tbody id="pdfRows"></tbody>
+</table>
+<p><b>Gesamt:</b> <span id="pdfTotal">0:00 h</span></p>
+</div>
+<button onclick="window.print()">PDF / Drucken</button>
+<button class="gray" onclick="alert('Demo: Excel-/DATEV-Export wird simuliert.')">Excel-/DATEV-Export</button>
+</div>
+
+<div id="profilePage" class="hidden">
+<div class="card">
+<h2>Profil</h2>
+<p><b id="profileName">Volker</b><br><span class="small">Rolle: Mitarbeiter</span></p>
+<button class="red" onclick="location.reload()">Abmelden</button>
+</div>
+</div>
+
+<div id="bossPage" class="hidden">
+<div class="card">
+<h2>Geschäftsführer / Büro</h2>
+<div class="kpis">
+<div class="kpi"><span class="small">Mitarbeiter</span><br><b>5</b></div>
+<div class="kpi"><span class="small">GF/Büro</span><br><b>3</b></div>
+</div>
+<p><b>Offene Berichte</b><br>Volker · Peter · Anna</p>
+<p><b>Archiv</b><br>2026 · 2025 · 2024</p>
+<button onclick="alert('Demo: Alle Stundenzettel werden angezeigt.')">Alle Stundenzettel ansehen</button>
+<button onclick="alert('Demo: Excel-/DATEV-Export wird simuliert.')">Excel-/DATEV-Export</button>
+<button onclick="alert('Demo: Passwort zurücksetzen.')">Passwort zurücksetzen</button>
+</div>
+</div>
+
+</section>
+</main>
+
+<nav id="navBar" class="hidden">
+<button id="navWeek" class="active" onclick="showPage('week')">📄<br>Woche</button>
+<button id="navReports" onclick="showPage('reports')">↩️<br>Berichte</button>
+<button id="navPdf" onclick="showPage('pdf')">🧾<br>PDF</button>
+<button id="navProfile" onclick="showPage('profile')">👤<br>Profil</button>
+<button id="navBoss" class="hidden" onclick="showPage('boss')">👔<br>Chef</button>
+</nav>
+
+<script>
+var users={
+  "Volker":{pass:"09101994",role:"worker",name:"Volker"},
+  "Chef":{pass:"1234",role:"boss",name:"Chef"},
+  "Buero":{pass:"1234",role:"boss",name:"Büro"}
+};
+
+var days=[
+  {id:"mo",name:"Montag",date:"02.06.2026"},
+  {id:"di",name:"Dienstag",date:"03.06.2026"},
+  {id:"mi",name:"Mittwoch",date:"04.06.2026"},
+  {id:"do",name:"Donnerstag",date:"05.06.2026"},
+  {id:"fr",name:"Freitag",date:"06.06.2026"}
+];
+
+function login(){
+  var u=document.getElementById("user").value.trim();
+  var p=document.getElementById("pass").value;
+  if(users[u] && users[u].pass===p){
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    document.getElementById("navBar").classList.remove("hidden");
+    document.getElementById("nameOut").innerText=users[u].name;
+    document.getElementById("profileName").innerText=users[u].name;
+    document.getElementById("pdfName").innerText=users[u].name;
+    if(users[u].role==="boss"){
+      document.getElementById("navBoss").classList.remove("hidden");
+      showPage("boss");
+    }else{
+      document.getElementById("navBoss").classList.add("hidden");
+      showPage("week");
+    }
+  }else{
+    document.getElementById("loginMsg").classList.remove("hidden");
+  }
+}
+
+function renderDays(){
+  var box=document.getElementById("daysBox");
+  box.innerHTML="";
+  for(var i=0;i<days.length;i++){
+    var d=days[i];
+    var html="";
+    html+='<div class="dayHead" onclick="toggleDay(\''+d.id+'\')">';
+    html+='<div><b>'+d.name+'</b><br><span class="small">'+d.date+'</span></div>';
+    html+='<span class="badge" id="'+d.id+'_badge">Arbeit</span>';
+    html+='<span class="time" id="'+d.id+'_sum">0:00 h</span>';
+    html+='</div>';
+    html+='<div class="dayBody '+(i===0?'':'hidden')+'" id="'+d.id+'_body">';
+    html+='<select id="'+d.id+'_status" onchange="calcAll()"><option>Arbeit</option><option>Urlaub</option><option>Krankheit</option><option>Feiertag</option></select>';
+    html+='<div id="'+d.id+'_sites">'+siteHtml(d.id,1)+'</div>';
+    html+='<button class="gray" onclick="addSite(\''+d.id+'\')">+ Weitere Baustelle an diesem Tag</button>';
+    html+='<label><input id="'+d.id+'_h" type="checkbox" onchange="calcAll()"> H</label>';
+    html+='<p class="err hidden" id="'+d.id+'_err"></p>';
+    html+='</div>';
+    box.innerHTML+=html;
+  }
+  calcAll();
+}
+
+function siteHtml(day,n){
+  var html="";
+  html+='<div class="site">';
+  html+='<input id="'+day+'_site_'+n+'" placeholder="Baustelle" oninput="calcAll()">';
+  html+='<textarea id="'+day+'_task_'+n+'" placeholder="Ausgeführte Tätigkeit" oninput="calcAll()"></textarea>';
+  html+='<div class="grid">';
+  html+='<input id="'+day+'_start_'+n+'" type="time" value="07:00" onchange="calcAll()">';
+  html+='<input id="'+day+'_end_'+n+'" type="time" value="16:15" onchange="calcAll()">';
+  html+='</div>';
+  html+='<input id="'+day+'_pause_'+n+'" type="number" min="0" value="45" placeholder="Pause in Minuten" oninput="calcAll()">';
+  html+='<p class="small">Arbeitszeit: <b id="'+day+'_work_'+n+'">0:00 h</b></p>';
+  html+='</div>';
+  return html;
+}
+
+function addSite(day){
+  var box=document.getElementById(day+"_sites");
+  var n=box.getElementsByClassName("site").length+1;
+  box.insertAdjacentHTML("beforeend",siteHtml(day,n));
+  calcAll();
+}
+
+function toggleDay(id){
+  document.getElementById(id+"_body").classList.toggle("hidden");
+}
+
+function toMin(t){
+  if(!t || t.indexOf(":")<0){return null;}
+  var a=t.split(":");
+  return Number(a[0])*60+Number(a[1]);
+}
+
+function fmt(m){
+  if(m<0){m=0;}
+  var h=Math.floor(m/60);
+  var min=m%60;
+  return h+":"+String(min).padStart(2,"0")+" h";
+}
+
+function calcAll(){
+  var week=0;
+  var hDays=0;
+  var errors=[];
+  for(var i=0;i<days.length;i++){
+    var d=days[i];
+    var id=d.id;
+    var status=document.getElementById(id+"_status").value;
+    document.getElementById(id+"_badge").innerText=status;
+    var err=document.getElementById(id+"_err");
+    err.classList.add("hidden");
+    err.innerText="";
+    var dayMin=0;
+
+    if(status!=="Arbeit"){
+      document.getElementById(id+"_sum").innerText=status;
+      continue;
+    }
+
+    var sites=document.getElementById(id+"_sites").getElementsByClassName("site");
+    for(var s=0;s<sites.length;s++){
+      var n=s+1;
+      var start=toMin(document.getElementById(id+"_start_"+n).value);
+      var end=toMin(document.getElementById(id+"_end_"+n).value);
+      var pause=Number(document.getElementById(id+"_pause_"+n).value||0);
+      var work=0;
+
+      if(start!==null && end!==null){
+        if(end<start){
+          err.innerText="Arbeitsende darf nicht vor Arbeitsbeginn liegen.";
+          err.classList.remove("hidden");
+          errors.push(d.name);
+        }else if(pause>(end-start)){
+          err.innerText="Pause darf nicht länger als Arbeitszeit sein.";
+          err.classList.remove("hidden");
+          errors.push(d.name);
+        }else{
+          work=end-start-pause;
+        }
+      }
+
+      document.getElementById(id+"_work_"+n).innerText=fmt(work);
+      dayMin+=work;
+    }
+
+    if(document.getElementById(id+"_h").checked){hDays++;}
+    document.getElementById(id+"_sum").innerText=fmt(dayMin);
+    week+=dayMin;
+  }
+
+  document.getElementById("weekTotal").innerText=fmt(week);
+  document.getElementById("hTotal").innerText=hDays;
+
+  if(errors.length>0){
+    document.getElementById("checkText").innerText="Bitte fehlerhafte Zeiten prüfen.";
+    document.getElementById("checkText").className="err";
+  }else{
+    document.getElementById("checkText").innerText="Alle Eingaben sind plausibel.";
+    document.getElementById("checkText").className="ok";
+  }
+
+  buildPdf();
+}
+
+function standard(){
+  for(var i=0;i<days.length;i++){
+    var id=days[i].id;
+    document.getElementById(id+"_status").value="Arbeit";
+    var sites=document.getElementById(id+"_sites").getElementsByClassName("site");
+    for(var s=0;s<sites.length;s++){
+      var n=s+1;
+      document.getElementById(id+"_start_"+n).value="07:00";
+      document.getElementById(id+"_end_"+n).value=(id==="fr")?"15:15":"16:15";
+      document.getElementById(id+"_pause_"+n).value="45";
+    }
+  }
+  calcAll();
+  alert("Standardzeiten wurden übernommen.");
+}
+
+function buildPdf(){
+  var rows=document.getElementById("pdfRows");
+  rows.innerHTML="";
+  for(var i=0;i<days.length;i++){
+    var d=days[i];
+    var id=d.id;
+    var sites=document.getElementById(id+"_sites").getElementsByClassName("site");
+    var siteText=[];
+    var taskText=[];
+    for(var s=0;s<sites.length;s++){
+      var n=s+1;
+      siteText.push(document.getElementById(id+"_site_"+n).value || "-");
+      taskText.push(document.getElementById(id+"_task_"+n).value || "-");
+    }
+    rows.innerHTML+='<tr><td>'+d.name+'</td><td>'+siteText.join("<br>")+'</td><td>'+taskText.join("<br>")+'</td><td>'+document.getElementById(id+"_status").value+'</td><td>'+document.getElementById(id+"_sum").innerText+'</td></tr>';
+  }
+  document.getElementById("pdfTotal").innerText=document.getElementById("weekTotal").innerText;
+}
+
+function showPage(p){
+  document.getElementById("weekPage").classList.add("hidden");
+  document.getElementById("reportsPage").classList.add("hidden");
+  document.getElementById("pdfPage").classList.add("hidden");
+  document.getElementById("profilePage").classList.add("hidden");
+  document.getElementById("bossPage").classList.add("hidden");
+
+  document.getElementById("navWeek").classList.remove("active");
+  document.getElementById("navReports").classList.remove("active");
+  document.getElementById("navPdf").classList.remove("active");
+  document.getElementById("navProfile").classList.remove("active");
+  document.getElementById("navBoss").classList.remove("active");
+
+  if(p==="week"){document.getElementById("weekPage").classList.remove("hidden");document.getElementById("navWeek").classList.add("active");}
+  if(p==="reports"){document.getElementById("reportsPage").classList.remove("hidden");document.getElementById("navReports").classList.add("active");}
+  if(p==="pdf"){document.getElementById("pdfPage").classList.remove("hidden");document.getElementById("navPdf").classList.add("active");}
+  if(p==="profile"){document.getElementById("profilePage").classList.remove("hidden");document.getElementById("navProfile").classList.add("active");}
+  if(p==="boss"){document.getElementById("bossPage").classList.remove("hidden");document.getElementById("navBoss").classList.add("active");}
+  calcAll();
+}
+
+function sendReport(){
+  calcAll();
+  if(document.getElementById("checkText").className==="err"){
+    alert("Bitte zuerst die fehlerhaften Zeiten korrigieren.");
+  }else{
+    alert("Wochenbericht wurde erfolgreich übermittelt. Demo: Daten werden nicht dauerhaft gespeichert.");
+  }
+}
+
+renderDays();
+</script>
+</body>
+</html>
