@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wochenbericht</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f3f5f8;color:#111}
+.top{background:#061a2e;color:white;padding:18px;text-align:center;font-size:22px;font-weight:700}
+.card{background:white;margin:14px;border-radius:14px;padding:16px;box-shadow:0 2px 8px #0001}
+.row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eee;padding:14px 0}
+.badge{background:#e9f8ef;color:#15803d;padding:7px 13px;border-radius:8px;font-weight:600}
+input,textarea,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;box-sizing:border-box}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.hidden{display:none}
+button{width:calc(100% - 28px);margin:14px;background:#007aff;color:white;border:0;border-radius:12px;padding:16px;font-size:18px;font-weight:700}
+.sum{display:flex;justify-content:center;gap:12px;font-size:24px;font-weight:800}
+.nav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #ddd}
+.nav div{font-size:13px;color:#555;text-align:center}
+.spacer{height:80px}
+</style>
+</head>
+<body>
+
+<div class="top">Wochenbericht</div>
+
+<div class="card">
+<h2>KW 23 / 2026</h2>
+<p>02.06. – 06.06.2026</p>
+<hr>
+<p>Mitarbeiter<br><b>Volker</b></p>
+<button onclick="standard()">Standard übernehmen</button>
+</div>
+
+<div class="card">
+
+<div class="row" onclick="openDay('mo')">
+<b>Montag<br><small>02.06.2026</small></b>
+<span class="badge">Arbeit</span>
+<span>8:00 h</span>
+</div>
+
+<div id="mo" class="hidden">
+<input placeholder="Baustelle">
+<textarea placeholder="Tätigkeit"></textarea>
+<div class="grid">
+<input type="time" value="07:00">
+<input type="time" value="16:00">
+<input placeholder="Pause Min." value="30">
+<select><option>H</option><option>Kein H</option></select>
+</div>
+</div>
+
+<div class="row" onclick="openDay('di')">
+<b>Dienstag<br><small>03.06.2026</small></b>
+<span class="badge">Arbeit</span>
+<span>8:00 h</span>
+</div>
+
+<div id="di" class="hidden">
+<input placeholder="Baustelle">
+<textarea placeholder="Tätigkeit"></textarea>
+<div class="grid">
+<input type="time" value="07:00">
+<input type="time" value="16:00">
+<input placeholder="Pause Min." value="30">
+<select><option>H</option><option>Kein H</option></select>
+</div>
+</div>
+
+<div class="row" onclick="openDay('mi')">
+<b>Mittwoch<br><small>04.06.2026</small></b>
+<span class="badge">Arbeit</span>
+<span>8:00 h</span>
+</div>
+
+<div id="mi">
+<input value="Neubau Müller, Hauptstraße 12" placeholder="Baustelle">
+<textarea>Betonarbeiten / Schalung</textarea>
+<div class="grid">
+<input type="time" value="07:00">
+<input type="time" value="16:30">
+<input placeholder="Pause Min." value="30">
+<select><option>H</option><option>Kein H</option></select>
+</div>
+<textarea placeholder="Bemerkung optional">Fundament ausgeschalt und Beton geglättet.</textarea>
+</div>
+
+<div class="row" onclick="openDay('do')">
+<b>Donnerstag<br><small>05.06.2026</small></b>
+<span class="badge">Arbeit</span>
+<span>8:00 h</span>
+</div>
+
+<div id="do" class="hidden">
+<input placeholder="Baustelle">
+<textarea placeholder="Tätigkeit"></textarea>
+<div class="grid">
+<input type="time" value="07:00">
+<input type="time" value="16:00">
+<input placeholder="Pause Min." value="30">
+<select><option>H</option><option>Kein H</option></select>
+</div>
+</div>
+
+<div class="row" onclick="openDay('fr')">
+<b>Freitag<br><small>06.06.2026</small></b>
+<span class="badge">Arbeit</span>
+<span>7:30 h</span>
+</div>
+
+<div id="fr" class="hidden">
+<input placeholder="Baustelle">
+<textarea placeholder="Tätigkeit"></textarea>
+<div class="grid">
+<input type="time" value="07:00">
+<input type="time" value="15:00">
+<input placeholder="Pause Min." value="30">
+<select><option>H</option><option>Kein H</option></select>
+</div>
+</div>
+
+</div>
+
+<div class="card">
+<p>Arbeitszeit gesamt</p>
+<div class="sum">39:30 h</div>
+</div>
+
+<button onclick="alert('Wochenbericht wurde übermittelt')">✈ Wochenbericht absenden</button>
+
+<div class="spacer"></div>
+
+<div class="nav">
+<div>📄<br>Wochenbericht</div>
+<div>↩️<br>Meine Berichte</div>
+<div>👤<br>Profil</div>
+</div>
+
+<script>
+function openDay(id){
+document.getElementById(id).classList.toggle("hidden");
+}
+
+function standard(){
+alert("Standardzeiten wurden übernommen.");
+}
+</script>
+
+</body>
+</html>
